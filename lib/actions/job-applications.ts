@@ -5,6 +5,7 @@ import { getSession } from "../auth/auth";
 import connectDB from "../db";
 import { Board, Column, JobApplication } from "../models";
 import { jobApplicationSchema, updateJobApplicationSchema } from "../validations/job-application";
+import { checkRateLimit } from "../rate-limit";
 interface JobApplicationData {
   company: string;
   position: string;
@@ -24,11 +25,23 @@ export async function createJobApplication(data: JobApplicationData) {
   if (!session?.user) {
     return { error: "Unauthorized" };
   }
-const validatedFields = jobApplicationSchema.safeParse(data);
+// Apply the Rate Limit: 10 requests per 60,000 milliseconds (1 minute)
+  const rateLimitResult = checkRateLimit(session.user.id, 10, 60 * 1000);
+
+  if (!rateLimitResult.success) {
+    return { error: "Too many requests. Please wait a minute before adding more jobs." };
+  }
+  const validatedFields = jobApplicationSchema.safeParse(data);
 if (!validatedFields.success) {
     // Return the first validation error message we find
-    return { error: validatedFields.error.errors[0].message };
+    return { error: validatedFields.error.errors[0]?.message || "Invalid input" };
   }
+
+
+
+
+
+
 
   const {
     company,
@@ -42,7 +55,12 @@ if (!validatedFields.success) {
     tags,
     description,
   } = validatedFields.data;
+  try{
   await connectDB();
+
+  }catch(error){
+    return { error: "Database connection failed" };
+  }
 
   if (!company || !position || !columnId || !boardId) {
     return { error: "Missing required fields" };

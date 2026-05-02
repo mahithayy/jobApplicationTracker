@@ -23,12 +23,15 @@ export default function Navbar() {
     <nav className="border-b border-gray-200 bg-white">
       <div className="container mx-auto flex h-16 items-center px-4 justify-between">
         <Link
-          href="/"
-          className="flex items-center gap-2 text-xl font-semibold text-primary"
-        >
-          <Briefcase />
-          Job Tracker
-        </Link>
+  href="/"
+  className="flex flex-col text-primary"
+>
+  <span className="flex items-center gap-2 text-xl font-semibold">
+    <Briefcase />
+    Job Tracker
+  </span>
+  <span className="text-xs text-muted-foreground mt-1 text-black">House of EdTech project by Mahitha</span>
+</Link>
         <div className="flex items-center gap-4">
           {session?.user ? (
             <>
