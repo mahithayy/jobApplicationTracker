@@ -37,7 +37,7 @@ export async function initializeUserBoard(userId: string) {
           name: col.name,
           order: col.order,
           boardId: board._id,
-          jobApplication: [],
+          jobApplications: [],
         })
       )
     );
