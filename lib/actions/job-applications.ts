@@ -34,7 +34,7 @@ export async function createJobApplication(data: JobApplicationData) {
   const validatedFields = jobApplicationSchema.safeParse(data);
 if (!validatedFields.success) {
     // Return the first validation error message we find
-    return { error: validatedFields.error.errors[0]?.message || "Invalid input" };
+    return { error: validatedFields.error.issues[0]?.message || "Invalid input" };
   }
 
 
@@ -139,7 +139,7 @@ export async function updateJobApplication(
   }
 const validatedFields = updateJobApplicationSchema.safeParse(updates);
 if (!validatedFields.success) {
-    return { error: validatedFields.error.errors[0].message };
+    return { error: validatedFields.error.issues[0].message };
   }
   await connectDB();
   const jobApplication = await JobApplication.findById(id);
