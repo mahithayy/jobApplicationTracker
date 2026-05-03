@@ -106,7 +106,7 @@ function DroppableColumn({
               {column.name}
             </CardTitle>
           </div>
-          <DropdownMenu>
+          <DropdownMenu modal={false}>
             {/* <DropdownMenuTrigger asChild>
               <Button
                 variant="ghost"

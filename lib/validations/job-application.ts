@@ -16,13 +16,17 @@ export const jobApplicationSchema = z.object({
   //   z.literal(""),
   //   z.string().trim().url("Please enter a valid URL (e.g., https://...)")
   // ]).optional(),
-  jobUrl: z
-  .string()
-  .url("Invalid URL")
-  .optional()
-  .refine((url) => !url || url.startsWith("https://"), {
-    message: "Only secure URLs allowed",
-  }).transform(sanitize),
+ jobUrl: z
+    .union([
+      z.literal(""), // Accepts empty string if user leaves it blank
+      z.string()
+        .url("Please enter a valid URL (e.g., https://example.com)")
+        .refine((url) => url.startsWith("https://"), {
+          message: "Only secure HTTPS URLs are allowed",
+        })
+    ])
+    .optional()
+    .transform(sanitize),
   columnId: z.string().min(1, "Column ID is required"),
   boardId: z.string().min(1, "Board ID is required"),
   tags: z.array(z.string()).optional(),

@@ -84,6 +84,7 @@ useEffect(() => {
 
       }
     } catch (err) {
+      setError("An unexpected error occurred while saving.");
       console.error("Failed to move job application: ", err);
     }
   }
@@ -155,7 +156,7 @@ useEffect(() => {
               )}
             </div>
             <div className="flex items-start gap-1">
-              <DropdownMenu>
+              <DropdownMenu modal={false}>
                 {/* <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="icon" className="h-6 w-6">
                     <MoreVertical className="h-4 w-4" />
