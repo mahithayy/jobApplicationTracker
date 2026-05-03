@@ -70,6 +70,7 @@ const [error, setError] = useState("");
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
+    {/* @ts-expect-error React 19 type mismatch with Radix UI */}
       <DialogTrigger asChild>
         <Button
           variant="outline"
