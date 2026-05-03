@@ -25,98 +25,66 @@ export async function createJobApplication(data: JobApplicationData) {
   if (!session?.user) {
     return { error: "Unauthorized" };
   }
-// Apply the Rate Limit: 10 requests per 60,000 milliseconds (1 minute)
-  const rateLimitResult = checkRateLimit(session.user.id, 10, 60 * 1000);
 
+  const rateLimitResult = checkRateLimit(session.user.id, 10, 60 * 1000);
   if (!rateLimitResult.success) {
     return { error: "Too many requests. Please wait a minute before adding more jobs." };
   }
+
   const validatedFields = jobApplicationSchema.safeParse(data);
-if (!validatedFields.success) {
-    // Return the first validation error message we find
+  if (!validatedFields.success) {
     return { error: validatedFields.error.issues[0]?.message || "Invalid input" };
   }
 
+  const { company, position, location, notes, salary, jobUrl, columnId, boardId, tags, description } = validatedFields.data;
 
+  try {
+    await connectDB();
 
+    if (!company || !position || !columnId || !boardId) {
+      return { error: "Missing required fields" };
+    }
 
+    const board = await Board.findOne({ _id: boardId, userId: session.user.id });
+    if (!board) return { error: "Board not found" };
 
+    const column = await Column.findOne({ _id: columnId, boardId: boardId });
+    if (!column) return { error: "Column not found" };
 
+    const maxOrder = (await JobApplication.findOne({ columnId })
+      .sort({ order: -1 })
+      .select("order")
+      .lean()) as { order: number } | null;
 
-  const {
-    company,
-    position,
-    location,
-    notes,
-    salary,
-    jobUrl,
-    columnId,
-    boardId,
-    tags,
-    description,
-  } = validatedFields.data;
-  try{
-  await connectDB();
+    // Database writes are now safely caught if they fail
+    const jobApplication = await JobApplication.create({
+      company,
+      position,
+      location,
+      notes,
+      salary,
+      jobUrl,
+      columnId,
+      boardId,
+      userId: session.user.id,
+      tags: tags || [],
+      description,
+      status: "applied",
+      order: maxOrder ? maxOrder.order + 1 : 0,
+    });
 
-  }catch(error){
-    return { error: "Database connection failed" };
+    await Column.findByIdAndUpdate(columnId, {
+      $push: { jobApplications: jobApplication._id },
+    });
+
+    revalidatePath("/dashboard");
+    return { data: JSON.parse(JSON.stringify(jobApplication)) };
+
+  } catch (error: any) {
+    console.error("Database operation failed:", error);
+    return { error: "Failed to save job application to the database." };
   }
-
-  if (!company || !position || !columnId || !boardId) {
-    return { error: "Missing required fields" };
-  }
-
-  // Verify board ownership
-  const board = await Board.findOne({
-    _id: boardId,
-    userId: session.user.id,
-  });
-
-  if (!board) {
-    return { error: "Board not found" };
-  }
-
-  // Verify column belongs to board
-
-  const column = await Column.findOne({
-    _id: columnId,
-    boardId: boardId,
-  });
-
-  if (!column) {
-    return { error: "Column not found" };
-  }
-
-  const maxOrder = (await JobApplication.findOne({ columnId })
-    .sort({ order: -1 })
-    .select("order")
-    .lean()) as { order: number } | null;
-
-  const jobApplication = await JobApplication.create({
-    company,
-    position,
-    location,
-    notes,
-    salary,
-    jobUrl,
-    columnId,
-    boardId,
-    userId: session.user.id,
-    tags: tags || [],
-    description,
-    status: "applied",
-    order: maxOrder ? maxOrder.order + 1 : 0,
-  });
-
-  await Column.findByIdAndUpdate(columnId, {
-    $push: { jobApplications: jobApplication._id },
-  });
-
-  revalidatePath("/dashboard");
-
-  return { data: JSON.parse(JSON.stringify(jobApplication)) };
 }
-
 export async function updateJobApplication(
   id: string,
   updates: {
