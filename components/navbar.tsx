@@ -37,7 +37,7 @@ export default function Navbar() {
             <>
             {pathname !== "/dashboard" && (
               <Link href="/dashboard">
-                <Button asChild
+                <Button
                   variant="ghost"
                   className="text-gray-700 hover:text-black"
                 >
