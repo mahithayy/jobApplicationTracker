@@ -171,7 +171,7 @@ export default function JobApplicationCard({
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                   <DropdownMenuItem
-                    onSelect={() => {
+                    onClick={() => {
                       setFormData(getFormDataFromJob(job));
                       setIsEditing(true);
                     }}
@@ -186,7 +186,7 @@ export default function JobApplicationCard({
                         .map((column, key) => (
                           <DropdownMenuItem
                             key={key}
-                            onSelect={() => handleMove(column._id)}
+                            onClick={() => handleMove(column._id)}
                           >
                             Move to {column.name}
                           </DropdownMenuItem>
@@ -195,7 +195,7 @@ export default function JobApplicationCard({
                   )}
                   <DropdownMenuItem
                     className="text-destructive"
-                    onSelect={() => handleDelete()}
+                    onClick={() => handleDelete()}
                   >
                     <Trash2 className="mr-2 h-4 w-4" />
                     Delete

@@ -14,9 +14,18 @@ import { Avatar, AvatarFallback } from "./ui/avatar";
 import SignOutButton from "./sign-out-btn";
 import { useSession } from "@/lib/auth/auth-client";
 import { usePathname } from "next/navigation";
+import { startTransition, useEffect, useState } from "react";
 export default function Navbar() {
   const { data: session } = useSession();
   const pathname = usePathname();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    startTransition(() => {
+      setMounted(true);
+    });
+  }, []);
+
   return (
     <nav className="border-b border-gray-200 bg-white">
       <div className="container mx-auto flex h-16 items-center px-4 justify-between">
@@ -31,7 +40,9 @@ export default function Navbar() {
   <span className="text-xs text-muted-foreground mt-1 text-black">House of EdTech project by Mahitha</span>
 </Link>
         <div className="flex items-center gap-4">
-          {session?.user ? (
+          {!mounted ? (
+            <div className="h-9 w-32" aria-hidden="true" />
+          ) : session?.user ? (
             <>
             {pathname !== "/dashboard" && (
               <Link href="/dashboard">
