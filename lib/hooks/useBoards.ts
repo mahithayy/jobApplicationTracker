@@ -2,7 +2,6 @@
 
 import { startTransition, useEffect, useState } from "react";
 import { Board, Column, JobApplication } from "../models/models.types";
-import { updateJobApplication } from "../actions/job-applications";
 
 export function useBoard(initialBoard?: Board | null) {
   const [board, setBoard] = useState<Board | null>(initialBoard || null);
@@ -81,11 +80,18 @@ export function useBoard(initialBoard?: Board | null) {
     });
 
     try {
-      const result = await updateJobApplication(jobApplicationId, {
-        columnId: newColumnId,
-        order: newOrder,
+      const response = await fetch(`/api/job-applications/${jobApplicationId}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          columnId: newColumnId,
+          order: newOrder,
+        }),
       });
-      if (result?.error) {
+      const result = await response.json();
+      if (!response.ok || result?.error) {
         setError(result.error);
         setColumns(previousColumns);
       } else {

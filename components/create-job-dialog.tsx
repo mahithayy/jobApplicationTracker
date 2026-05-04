@@ -15,7 +15,6 @@ import { Label } from "./ui/label";
 import { Input } from "./ui/input";
 import { Textarea } from "./ui/textarea";
 import React, { useState } from "react";
-import { createJobApplication } from "@/lib/actions/job-applications";
 import { useRouter } from "next/navigation";
 
 interface CreateJobApplicationDialogProps {
@@ -46,17 +45,24 @@ const [error, setError] = useState("");
     e.preventDefault();
 
     try {
-      const result = await createJobApplication({
-        ...formData,
-        columnId,
-        boardId,
-        tags: formData.tags
-          .split(",")
-          .map((tag) => tag.trim())
-          .filter((tag) => tag.length > 0),
+      const response = await fetch("/api/job-applications", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          ...formData,
+          columnId,
+          boardId,
+          tags: formData.tags
+            .split(",")
+            .map((tag) => tag.trim())
+            .filter((tag) => tag.length > 0),
+        }),
       });
+      const result = await response.json();
 
-      if (!result.error) {
+      if (response.ok && !result.error) {
         setFormData(INITIAL_FORM_DATA);
         setError("");
         setOpen(false);

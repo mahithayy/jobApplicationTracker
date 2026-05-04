@@ -11,10 +11,6 @@ import {
 } from "./ui/dropdown-menu";
 import { Button } from "./ui/button";
 import {
-  deleteJobApplication,
-  updateJobApplication,
-} from "@/lib/actions/job-applications";
-import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -58,15 +54,22 @@ export default function JobApplicationCard({
   async function handleUpdate(e: React.FormEvent) {
     e.preventDefault();
     try {
-      const result = await updateJobApplication(job._id, {
-        ...formData,
-        tags: formData.tags
-          .split(",")
-          .map((tag) => tag.trim())
-          .filter((tag) => tag.length > 0),
+      const response = await fetch(`/api/job-applications/${job._id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          ...formData,
+          tags: formData.tags
+            .split(",")
+            .map((tag) => tag.trim())
+            .filter((tag) => tag.length > 0),
+        }),
       });
+      const result = await response.json();
 
-      if (!result?.error) {
+      if (response.ok && !result?.error) {
         setIsEditing(false);
         setError("");
         router.refresh();
@@ -82,9 +85,12 @@ export default function JobApplicationCard({
 
   async function handleDelete() {
     try {
-      const result = await deleteJobApplication(job._id);
+      const response = await fetch(`/api/job-applications/${job._id}`, {
+        method: "DELETE",
+      });
+      const result = await response.json();
 
-      if (result.error) {
+      if (!response.ok || result.error) {
         console.error("Failed to delete job application:", result.error);
       } else {
         router.refresh();
@@ -96,12 +102,21 @@ export default function JobApplicationCard({
 
   async function handleMove(newColumnId: string) {
     try {
-      const result = await updateJobApplication(job._id, {
-        columnId: newColumnId,
+      const response = await fetch(`/api/job-applications/${job._id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          columnId: newColumnId,
+        }),
       });
+      const result = await response.json();
 
-      if (!result?.error) {
+      if (response.ok && !result?.error) {
          router.refresh();
+      } else {
+        console.error("Failed to move job application:", result.error);
       }
     } catch (err) {
       console.error("Failed to move job application: ", err);
