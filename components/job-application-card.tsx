@@ -166,7 +166,7 @@ useEffect(() => {
                   <MoreVertical className="h-4 w-4" />
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={() => setIsEditing(true)}>
+                  <DropdownMenuItem onSelect={() => setIsEditing(true)}>
                     <Edit2 className="mr-2 h-4 w-4" />
                     Edit
                   </DropdownMenuItem>
@@ -177,7 +177,7 @@ useEffect(() => {
                         .map((column, key) => (
                           <DropdownMenuItem
                             key={key}
-                            onClick={() => handleMove(column._id)}
+                            onSelect={() => handleMove(column._id)}
                           >
                             Move to {column.name}
                           </DropdownMenuItem>
@@ -186,7 +186,7 @@ useEffect(() => {
                   )}
                   <DropdownMenuItem
                     className="text-destructive"
-                    onClick={() => handleDelete()}
+                    onSelect={() => handleDelete()}
                   >
                     <Trash2 className="mr-2 h-4 w-4" />
                     Delete

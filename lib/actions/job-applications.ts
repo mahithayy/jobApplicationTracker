@@ -21,7 +21,7 @@ interface JobApplicationData {
 
 export async function createJobApplication(data: JobApplicationData) {
   const session = await getSession();
-console.log("SESSION:", session);
+  console.log("SESSION:", session);
   if (!session?.user) {
     return { error: "Unauthorized" };
   }
@@ -109,6 +109,7 @@ const validatedFields = updateJobApplicationSchema.safeParse(updates);
 if (!validatedFields.success) {
     return { error: validatedFields.error.issues[0].message };
   }
+  try{
   await connectDB();
   const jobApplication = await JobApplication.findById(id);
 
@@ -227,8 +228,11 @@ if (!validatedFields.success) {
   revalidatePath("/dashboard");
 
   return { data: JSON.parse(JSON.stringify(updated)) };
+}catch(error){
+  console.error("Database operation failed:", error);
+  return { error: "Failed to update job application in the database." };
 }
-
+}
 export async function deleteJobApplication(id: string) {
   const session = await getSession();
 

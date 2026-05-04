@@ -196,7 +196,7 @@ export default function KanbanBoard({ board, userId }: KanbanBoardProps) {
   const [activeId, setActiveId] = useState<string | null>(null);
   const { columns, moveJob } = useBoard(board);
 
-  const sortedColumns = columns?.sort((a, b) => a.order - b.order) || [];
+  const sortedColumns = [...(columns || [])].sort((a, b) => a.order - b.order);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
