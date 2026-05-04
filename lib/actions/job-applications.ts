@@ -20,25 +20,24 @@ interface JobApplicationData {
 }
 
 export async function createJobApplication(data: JobApplicationData) {
-  const session = await getSession();
-  console.log("SESSION:", session);
-  if (!session?.user) {
-    return { error: "Unauthorized" };
-  }
-
-  const rateLimitResult = checkRateLimit(session.user.id, 10, 60 * 1000);
-  if (!rateLimitResult.success) {
-    return { error: "Too many requests. Please wait a minute before adding more jobs." };
-  }
-
-  const validatedFields = jobApplicationSchema.safeParse(data);
-  if (!validatedFields.success) {
-    return { error: validatedFields.error.issues[0]?.message || "Invalid input" };
-  }
-
-  const { company, position, location, notes, salary, jobUrl, columnId, boardId, tags, description } = validatedFields.data;
-
   try {
+    const session = await getSession();
+    if (!session?.user) {
+      return { error: "Unauthorized" };
+    }
+
+    const rateLimitResult = checkRateLimit(session.user.id, 10, 60 * 1000);
+    if (!rateLimitResult.success) {
+      return { error: "Too many requests. Please wait a minute before adding more jobs." };
+    }
+
+    const validatedFields = jobApplicationSchema.safeParse(data);
+    if (!validatedFields.success) {
+      return { error: validatedFields.error.issues[0]?.message || "Invalid input" };
+    }
+
+    const { company, position, location, notes, salary, jobUrl, columnId, boardId, tags, description } = validatedFields.data;
+
     await connectDB();
 
     if (!company || !position || !columnId || !boardId) {
@@ -81,7 +80,7 @@ export async function createJobApplication(data: JobApplicationData) {
     return { data: JSON.parse(JSON.stringify(jobApplication)) };
 
   } catch (error: unknown) {
-    console.error("Database operation failed:", error);
+    console.error("Create job application failed:", error);
     return { error: "Failed to save job application to the database." };
   }
 }
@@ -100,6 +99,7 @@ export async function updateJobApplication(
     description?: string;
   }
 ) {
+  try{
   const session = await getSession();
 
   if (!session?.user) {
@@ -109,7 +109,6 @@ const validatedFields = updateJobApplicationSchema.safeParse(updates);
 if (!validatedFields.success) {
     return { error: validatedFields.error.issues[0].message };
   }
-  try{
   await connectDB();
   const jobApplication = await JobApplication.findById(id);
 
@@ -229,16 +228,17 @@ if (!validatedFields.success) {
 
   return { data: JSON.parse(JSON.stringify(updated)) };
 }catch(error){
-  console.error("Database operation failed:", error);
+  console.error("Update job application failed:", error);
   return { error: "Failed to update job application in the database." };
 }
 }
 export async function deleteJobApplication(id: string) {
+  try{
   const session = await getSession();
 
   if (!session?.user) {
     return { error: "Unauthorized" };
-  } try{
+  }
 await connectDB();
   const jobApplication = await JobApplication.findById(id);
 
@@ -260,7 +260,7 @@ await connectDB();
   return { success: true };
 }
 catch(error){
-  console.error("Database operation failed:", error);
+  console.error("Delete job application failed:", error);
   return { error: "Failed to delete job application from the database." };
 }
 }

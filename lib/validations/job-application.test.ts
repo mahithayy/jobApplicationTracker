@@ -2,7 +2,7 @@ import { describe, it, expect, jest } from '@jest/globals';
 
 jest.mock("isomorphic-dompurify", () => {
   return {
-    sanitize: (value: any) => value, // Just return the value unchanged during the test
+    sanitize: (value: unknown) => value, // Just return the value unchanged during the test
   };
 });
 

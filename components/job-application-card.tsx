@@ -1,9 +1,8 @@
 "use client";
-import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { JobApplication, Column } from "@/lib/models/models.types";
 import { Card, CardContent } from "./ui/card";
-import { Edit2, ExternalLink, MoreVertical, Plus, Trash2 } from "lucide-react";
+import { Edit2, ExternalLink, GripVertical, MoreVertical, Trash2 } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -33,15 +32,8 @@ interface JobApplicationCardProps {
   dragHandleProps?: React.HTMLAttributes<HTMLElement>;
 }
 
-export default function JobApplicationCard({
-  job,
-  columns,
-  dragHandleProps,
-}: JobApplicationCardProps) {
-  const router = useRouter();
-  const [isEditing, setIsEditing] = useState(false);
-  const [error, setError] = useState("");
-  const [formData, setFormData] = useState({
+function getFormDataFromJob(job: JobApplication) {
+  return {
     company: job.company,
     position: job.position,
     location: job.location || "",
@@ -51,20 +43,18 @@ export default function JobApplicationCard({
     columnId: job.columnId || "",
     tags: job.tags?.join(", ") || "",
     description: job.description || "",
-  });
-useEffect(() => {
-    setFormData({
-      company: job.company,
-      position: job.position,
-      location: job.location || "",
-      notes: job.notes || "",
-      salary: job.salary || "",
-      jobUrl: job.jobUrl || "",
-      columnId: job.columnId || "",
-      tags: job.tags?.join(", ") || "",
-      description: job.description || "",
-    });
-  }, [job]);
+  };
+}
+
+export default function JobApplicationCard({
+  job,
+  columns,
+  dragHandleProps,
+}: JobApplicationCardProps) {
+  const router = useRouter();
+  const [isEditing, setIsEditing] = useState(false);
+  const [error, setError] = useState("");
+  const [formData, setFormData] = useState(() => getFormDataFromJob(job));
   async function handleUpdate(e: React.FormEvent) {
     e.preventDefault();
     try {
@@ -79,6 +69,7 @@ useEffect(() => {
       if (!result?.error) {
         setIsEditing(false);
         setError("");
+        router.refresh();
       }else{
               setError(result.error);
 
@@ -92,10 +83,11 @@ useEffect(() => {
   async function handleDelete() {
     try {
       const result = await deleteJobApplication(job._id);
-router.refresh();
 
       if (result.error) {
         console.error("Failed to delete job application:", result.error);
+      } else {
+        router.refresh();
       }
     } catch (err) {
       console.error("Failed to move job application: ", err);
@@ -119,10 +111,17 @@ router.refresh();
     <>
       <Card
         className="cursor-pointer transition-shadow hover:shadow-lg bg-white group shadow-sm"
-        {...dragHandleProps}
       >
         <CardContent className="p-4">
           <div className="flex items-start justify-between gap-2">
+            <button
+              type="button"
+              className="mt-0.5 -ml-1 inline-flex h-6 w-6 cursor-grab items-center justify-center rounded-md text-muted-foreground hover:bg-muted active:cursor-grabbing"
+              aria-label="Drag job application"
+              {...dragHandleProps}
+            >
+              <GripVertical className="h-4 w-4" />
+            </button>
             <div className="flex-1 min-w-0">
               <h3 className="font-semibold text-sm mb-1">{job.position}</h3>
               <p className="text-xs text-muted-foreground mb-2">
@@ -163,11 +162,20 @@ router.refresh();
                     <MoreVertical className="h-4 w-4" />
                   </Button>
                 </DropdownMenuTrigger> */}
-                <DropdownMenuTrigger className="h-6 w-6 inline-flex items-center justify-center rounded-md hover:bg-muted focus:outline-none">
+                <DropdownMenuTrigger
+                  className="h-6 w-6 inline-flex items-center justify-center rounded-md hover:bg-muted focus:outline-none"
+                  onPointerDown={(e) => e.stopPropagation()}
+                  onClick={(e) => e.stopPropagation()}
+                >
                   <MoreVertical className="h-4 w-4" />
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  <DropdownMenuItem onSelect={() => setIsEditing(true)}>
+                  <DropdownMenuItem
+                    onSelect={() => {
+                      setFormData(getFormDataFromJob(job));
+                      setIsEditing(true);
+                    }}
+                  >
                     <Edit2 className="mr-2 h-4 w-4" />
                     Edit
                   </DropdownMenuItem>

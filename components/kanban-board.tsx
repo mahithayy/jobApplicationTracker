@@ -6,7 +6,6 @@ import {
   Calendar,
   CheckCircle2,
   Mic,
-  MoreHorizontal,
   MoreVertical,
   Trash2,
   XCircle,
@@ -18,7 +17,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
-import { Button } from "./ui/button";
 import CreateJobApplicationDialog from "./create-job-dialog";
 import JobApplicationCard from "./job-application-card";
 import { useBoard } from "@/lib/hooks/useBoards";
@@ -139,7 +137,7 @@ function DroppableColumn({
           items={sortedJobs.map((job) => job._id)}
           strategy={verticalListSortingStrategy}
         >
-          {sortedJobs.map((job, key) => (
+          {sortedJobs.map((job) => (
             <SortableJobCard
               key={job._id}
               job={{ ...job, columnId: job.columnId || column._id }}
@@ -192,7 +190,7 @@ function SortableJobCard({
   );
 }
 
-export default function KanbanBoard({ board, userId }: KanbanBoardProps) {
+export default function KanbanBoard({ board }: KanbanBoardProps) {
   const [activeId, setActiveId] = useState<string | null>(null);
   const { columns, moveJob } = useBoard(board);
 

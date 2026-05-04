@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { startTransition, useEffect, useState } from "react";
 import { Board, Column, JobApplication } from "../models/models.types";
 import { updateJobApplication } from "../actions/job-applications";
 
@@ -11,8 +11,10 @@ export function useBoard(initialBoard?: Board | null) {
 
   useEffect(() => {
     if (initialBoard) {
-      setBoard(initialBoard);
-      setColumns(initialBoard.columns || []);
+      startTransition(() => {
+        setBoard(initialBoard);
+        setColumns(initialBoard.columns || []);
+      });
     }
   }, [initialBoard]);
 
@@ -21,7 +23,9 @@ export function useBoard(initialBoard?: Board | null) {
     newColumnId: string,
     newOrder: number
   ) {
+    let previousColumns: Column[] = [];
     setColumns((prev) => {
+      previousColumns = prev;
       const newColumns = prev.map((col) => ({
         ...col,
         jobApplications: [...col.jobApplications],
@@ -81,8 +85,16 @@ export function useBoard(initialBoard?: Board | null) {
         columnId: newColumnId,
         order: newOrder,
       });
+      if (result?.error) {
+        setError(result.error);
+        setColumns(previousColumns);
+      } else {
+        setError(null);
+      }
     } catch (err) {
       console.error("Error", err);
+      setError("Failed to move job application.");
+      setColumns(previousColumns);
     }
   }
 

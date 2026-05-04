@@ -1,7 +1,7 @@
 import { z } from "zod";
 import DOMPurify from "isomorphic-dompurify";
-const sanitize = (value: string | undefined | null) => {
-  if (!value) return value as any;
+const sanitize = (value: string | undefined) => {
+  if (!value) return value;
   // DOMPurify strips out malicious tags like <script>, <iframe>, etc.
   return DOMPurify.sanitize(value);
 };
