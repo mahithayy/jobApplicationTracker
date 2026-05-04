@@ -1,9 +1,20 @@
 import { betterAuth } from "better-auth";
 import { mongodbAdapter } from "better-auth/adapters/mongodb";
-import { headers } from "next/headers";
+import { headers as nextHeaders } from "next/headers";
 import { redirect } from "next/navigation";
 import { initializeUserBoard } from "../init-user-board";
 import connectDB from "../db";
+
+const authBaseURL =
+  process.env.BETTER_AUTH_URL || process.env.NEXT_PUBLIC_BETTER_AUTH_URL;
+
+const vercelOrigin = process.env.VERCEL_URL
+  ? `https://${process.env.VERCEL_URL}`
+  : undefined;
+
+const trustedOrigins = [authBaseURL, vercelOrigin].filter(
+  (origin): origin is string => Boolean(origin)
+);
 
 async function createAuthInstance() {
   const mongooseInstance = await connectDB();
@@ -11,6 +22,7 @@ async function createAuthInstance() {
   const db = client.db();
 
   return betterAuth({
+    baseURL: authBaseURL,
     database: mongodbAdapter(db, {
       client,
     }),
@@ -20,9 +32,7 @@ async function createAuthInstance() {
         maxAge: 60 * 60,
       },
     },
-    trustedOrigins: [
-      process.env.NEXT_PUBLIC_BETTER_AUTH_URL!,
-    ],
+    trustedOrigins,
     emailAndPassword: {
       enabled: true,
     },
@@ -54,10 +64,10 @@ export const auth = async (request: Request) => {
   return authInstance.handler(request);
 };
 
-export async function getSession() {
+export async function getSession(requestHeaders?: Headers) {
   const authInstance = await getAuth();
   const result = await authInstance.api.getSession({
-    headers: await headers(),
+    headers: requestHeaders || (await nextHeaders()),
   });
 
   return result;
@@ -66,7 +76,7 @@ export async function getSession() {
 export async function signOut() {
   const authInstance = await getAuth();
   const result = await authInstance.api.signOut({
-    headers: await headers(),
+    headers: await nextHeaders(),
   });
 
   if (result.success) {

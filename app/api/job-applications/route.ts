@@ -8,7 +8,7 @@ import { jobApplicationSchema } from "@/lib/validations/job-application";
 
 export async function POST(request: Request) {
   try {
-    const session = await getSession();
+    const session = await getSession(request.headers);
     if (!session?.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
