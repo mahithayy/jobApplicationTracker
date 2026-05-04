@@ -5,41 +5,58 @@ import { redirect } from "next/navigation";
 import { initializeUserBoard } from "../init-user-board";
 import connectDB from "../db";
 
-const mongooseInstance = await connectDB();
-const client = mongooseInstance.connection.getClient();
-const db = client.db();
+async function createAuthInstance() {
+  const mongooseInstance = await connectDB();
+  const client = mongooseInstance.connection.getClient();
+  const db = client.db();
 
-export const auth = betterAuth({
-  database: mongodbAdapter(db, {
-    client,
-  }),
-  session: {
-    cookieCache: {
-      enabled: true,
-      maxAge: 60 * 60,
+  return betterAuth({
+    database: mongodbAdapter(db, {
+      client,
+    }),
+    session: {
+      cookieCache: {
+        enabled: true,
+        maxAge: 60 * 60,
+      },
     },
-  },
-  trustedOrigins: [
-  process.env.NEXT_PUBLIC_BETTER_AUTH_URL!,
-],
-  emailAndPassword: {
-    enabled: true,
-  },
-  databaseHooks: {
-    user: {
-      create: {
-        after: async (user) => {
-          if (user.id) {
-            await initializeUserBoard(user.id);
-          }
+    trustedOrigins: [
+      process.env.NEXT_PUBLIC_BETTER_AUTH_URL!,
+    ],
+    emailAndPassword: {
+      enabled: true,
+    },
+    databaseHooks: {
+      user: {
+        create: {
+          after: async (user) => {
+            if (user.id) {
+              await initializeUserBoard(user.id);
+            }
+          },
         },
       },
     },
-  },
-});
+  });
+}
+
+type Auth = Awaited<ReturnType<typeof createAuthInstance>>;
+
+let authPromise: Promise<Auth> | null = null;
+
+export function getAuth(): Promise<Auth> {
+  authPromise ??= createAuthInstance();
+  return authPromise;
+}
+
+export const auth = async (request: Request) => {
+  const authInstance = await getAuth();
+  return authInstance.handler(request);
+};
 
 export async function getSession() {
-  const result = await auth.api.getSession({
+  const authInstance = await getAuth();
+  const result = await authInstance.api.getSession({
     headers: await headers(),
   });
 
@@ -47,7 +64,8 @@ export async function getSession() {
 }
 
 export async function signOut() {
-  const result = await auth.api.signOut({
+  const authInstance = await getAuth();
+  const result = await authInstance.api.signOut({
     headers: await headers(),
   });
 
