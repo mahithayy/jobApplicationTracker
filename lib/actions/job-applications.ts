@@ -70,7 +70,7 @@ export async function createJobApplication(data: JobApplicationData) {
       tags: tags || [],
       description,
       status: "applied",
-      order: maxOrder ? maxOrder.order + 1 : 0,
+      order: maxOrder ? maxOrder.order + 100 : 0,
     });
 
     await Column.findByIdAndUpdate(columnId, {
@@ -80,7 +80,7 @@ export async function createJobApplication(data: JobApplicationData) {
     revalidatePath("/dashboard");
     return { data: JSON.parse(JSON.stringify(jobApplication)) };
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Database operation failed:", error);
     return { error: "Failed to save job application to the database." };
   }
@@ -238,8 +238,8 @@ export async function deleteJobApplication(id: string) {
 
   if (!session?.user) {
     return { error: "Unauthorized" };
-  }
-
+  } try{
+await connectDB();
   const jobApplication = await JobApplication.findById(id);
 
   if (!jobApplication) {
@@ -258,4 +258,9 @@ export async function deleteJobApplication(id: string) {
   revalidatePath("/dashboard");
 
   return { success: true };
+}
+catch(error){
+  console.error("Database operation failed:", error);
+  return { error: "Failed to delete job application from the database." };
+}
 }

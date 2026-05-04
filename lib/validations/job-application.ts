@@ -34,6 +34,9 @@ export const jobApplicationSchema = z.object({
 });
 
 // For updates, all fields become optional, plus we might need to update the order
-export const updateJobApplicationSchema = jobApplicationSchema.partial().extend({
-  order: z.number().optional(),
-});
+export const updateJobApplicationSchema = jobApplicationSchema
+  .omit({ boardId: true })
+  .partial()
+  .extend({
+    order: z.number().optional(),
+  });

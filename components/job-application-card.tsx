@@ -92,6 +92,7 @@ useEffect(() => {
   async function handleDelete() {
     try {
       const result = await deleteJobApplication(job._id);
+router.refresh();
 
       if (result.error) {
         console.error("Failed to delete job application:", result.error);

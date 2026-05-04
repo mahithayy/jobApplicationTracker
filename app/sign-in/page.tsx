@@ -44,6 +44,8 @@ useEffect(() => {
         setError(result.error.message ?? "Failed to sign in");
       } else {
         router.push("/dashboard");
+        router.refresh();
+
       }
     } catch (err) {
       setError("An unexpected error occurred");
