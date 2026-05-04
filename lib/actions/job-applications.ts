@@ -21,7 +21,7 @@ interface JobApplicationData {
 
 export async function createJobApplication(data: JobApplicationData) {
   const session = await getSession();
-
+console.log("SESSION:", session);
   if (!session?.user) {
     return { error: "Unauthorized" };
   }
