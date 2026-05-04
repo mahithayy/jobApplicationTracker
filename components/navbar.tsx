@@ -88,7 +88,7 @@ export default function Navbar() {
             <>
             {pathname !== "/sign-in" && (
               <Link href="/sign-in">
-                <Button asChild
+                <Button
                   variant="ghost"
                   className="text-gray-700 hover:text-black"
                 >
@@ -98,7 +98,7 @@ export default function Navbar() {
             )}
              {pathname !== "/sign-up" && (
               <Link href="/sign-up">
-                <Button asChild className="bg-primary hover:bg-primary/90">
+                <Button  className="bg-primary hover:bg-primary/90">
                   Start for free
                 </Button>
               </Link>
