@@ -8,6 +8,12 @@ import connectDB from "../db";
 const authBaseURL =
   process.env.BETTER_AUTH_URL || process.env.NEXT_PUBLIC_BETTER_AUTH_URL;
 
+if (!authBaseURL) {
+  throw new Error(
+    "BETTER_AUTH_URL or NEXT_PUBLIC_BETTER_AUTH_URL must be defined in production."
+  );
+}
+
 const vercelOrigin = process.env.VERCEL_URL
   ? `https://${process.env.VERCEL_URL}`
   : undefined;
