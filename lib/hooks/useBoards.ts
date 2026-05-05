@@ -103,6 +103,32 @@ export function useBoard(initialBoard?: Board | null) {
       setColumns(previousColumns);
     }
   }
+async function deleteColumn(columnId: string) {
+  const previousColumns = [...columns];
 
-  return { board, columns, error, moveJob };
+  // Optimistically remove the column from the UI
+  setColumns((prev) => prev.filter((col) => col._id !== columnId));
+
+  try {
+    const response = await fetch(`/api/columns/${columnId}`, {
+      method: "DELETE",
+    });
+
+    const result = await response.json();
+
+    if (!response.ok || result?.error) {
+      setError(result?.error || "Failed to delete column");
+      // Rollback UI if the server failed
+      setColumns(previousColumns);
+    } else {
+      setError(null);
+    }
+  } catch (err) {
+    console.error("Error deleting column:", err);
+    setError("Failed to delete column.");
+    // Rollback UI if network error
+    setColumns(previousColumns);
+  }
+}
+  return { board, columns, error, moveJob, deleteColumn };
 }

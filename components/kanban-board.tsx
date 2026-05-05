@@ -37,7 +37,7 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 interface KanbanBoardProps {
   board: Board;
@@ -76,11 +76,13 @@ function DroppableColumn({
   config,
   boardId,
   sortedColumns,
+  onDeleteColumn,
 }: {
   column: Column;
   config: ColConfig;
   boardId: string;
   sortedColumns: Column[];
+  onDeleteColumn: (id: string) => void;
 }) {
   const { setNodeRef, isOver } = useDroppable({
     id: column._id,
@@ -118,7 +120,13 @@ function DroppableColumn({
               <MoreVertical className="h-4 w-4" />
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem className="text-destructive">
+              <DropdownMenuItem className="text-destructive"
+              onClick={() => {
+      // Prompt the user to confirm before wiping out data
+      if (window.confirm(`Are you sure you want to delete the "${column.name}" column? This will permanently delete all jobs inside it.`)) {
+        onDeleteColumn(column._id);
+      }
+    }}>
                 <Trash2 className="mr-2 h-4 w-4" />
                 Delete Column
               </DropdownMenuItem>
@@ -192,10 +200,13 @@ function SortableJobCard({
 
 export default function KanbanBoard({ board }: KanbanBoardProps) {
   const [activeId, setActiveId] = useState<string | null>(null);
-  const { columns, moveJob } = useBoard(board);
+  const { columns, moveJob ,deleteColumn } = useBoard(board);
 
   const sortedColumns = [...(columns || [])].sort((a, b) => a.order - b.order);
-
+const [mounted, setMounted] = useState(false);
+useEffect(() => {
+    setMounted(true);
+  }, []);
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
@@ -301,7 +312,9 @@ export default function KanbanBoard({ board }: KanbanBoardProps) {
 
     await moveJob(activeId, targetColumnId, newOrder);
   }
-
+if (!mounted) {
+    return <div className="space-y-4 text-muted-foreground">Loading board...</div>;
+  }
   const activeJob = sortedColumns
     .flatMap((col) => col.jobApplications || [])
     .find((job) => job._id === activeId);
@@ -326,6 +339,7 @@ export default function KanbanBoard({ board }: KanbanBoardProps) {
                 config={config}
                 boardId={board._id}
                 sortedColumns={sortedColumns}
+                onDeleteColumn={deleteColumn}
               />
             );
           })}
